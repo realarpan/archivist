@@ -1,28 +1,231 @@
 "use client";
 
-import { Button } from "@repo/ui/components/ui/button";
-import Link from "next/link";
-import { Separator } from "@repo/ui/components/ui/separator";
-import { useGetApiHealth } from "@/lib/api";
+import React, { useState, useMemo } from "react";
+import type { DayInfo, DayEntryMap, Review } from "@/lib/types";
+import { QUADRIMESTERS, Legend, ReviewCategory } from "@/lib/constants";
+import { MonthGrid } from "@/components/calendar/month-grid";
+import { MoodLegend } from "@/components/calendar/mood-legend";
+import { DayModal } from "@/components/calendar/day-modal";
+import {
+  useYearEntries,
+  useSaveDayEntry,
+  useCreateReview,
+  useCustomCategories,
+  useDayEntry,
+} from "@/lib/api/calendar";
+import Loader from "@/components/core/loader";
+import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
+import SignInDialog from "@/components/auth/sign-in-dialog";
 
 export default function Home() {
-  const { data: apiHealth } = useGetApiHealth();
-  return (
-    <div className="max-w-5xl mx-auto mt-10">
-      <h1 className="text-7xl font-bold">Hello Ram</h1>
-      <p className="text-lg">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
-      </p>
-      <Button variant={"secondary"}>
-        <Link href="/calendar">Visit Calendar</Link>
-      </Button>
+  const [year] = useState(2026);
+  const [selectedDay, setSelectedDay] = useState<DayInfo | null>(null);
+  const [signInOpen, setSignInOpen] = useState(false);
 
-      <Separator className="my-4" />
+  const { data: session, isPending: isSessionLoading } =
+    authClient.useSession();
 
-      <div className="flex flex-col gap-2">
-        <h2 className="text-2xl font-bold">API Health</h2>
-        <p className="text-lg">{apiHealth?.message || "No data"}</p>
+  // Fetch data
+  const { data: yearData, isLoading: isLoadingYear } = useYearEntries();
+  const { data: customCategoriesData } = useCustomCategories();
+  const { data: dayData } = useDayEntry(selectedDay?.dateKey || null);
+
+  // Mutations
+  const saveDayEntry = useSaveDayEntry();
+  const createReview = useCreateReview();
+
+  // Convert entries array to map
+  const dayEntries: DayEntryMap = useMemo(() => {
+    if (!yearData?.entries) return {};
+    const map: DayEntryMap = {};
+    yearData.entries.forEach((entry) => {
+      map[entry.date] = entry;
+    });
+    return map;
+  }, [yearData]);
+
+  // Group reviews by entry ID
+  const reviewsByEntry: Record<string, Review[]> = useMemo(() => {
+    if (!yearData?.reviews) return {};
+    const map: Record<string, Review[]> = {};
+    yearData.reviews.forEach((review) => {
+      if (!map[review.dayEntryId]) {
+        map[review.dayEntryId] = [];
+      }
+      map[review.dayEntryId]!.push(review);
+    });
+    return map;
+  }, [yearData]);
+
+  // Calculate stats
+  const totalEntries = yearData?.entries?.length || 0;
+  const goodDaysCount =
+    yearData?.entries?.filter(
+      (e) => e.legend === Legend.GOOD_DAY || e.legend === Legend.CORE_MEMORY
+    ).length || 0;
+
+  const handleDayClick = (day: DayInfo) => {
+    if (!session) {
+      setSignInOpen(true);
+      return;
+    }
+    setSelectedDay(day);
+  };
+
+  const handleSaveDayEntry = async (data: {
+    date: string;
+    legend: Legend;
+    reviews: Array<{
+      category: ReviewCategory;
+      customCategoryId?: string;
+      content: string;
+    }>;
+  }) => {
+    try {
+      // First, save the day entry
+      const result = await saveDayEntry.mutateAsync({
+        date: data.date,
+        legend: data.legend,
+      });
+
+      // Then, create all reviews
+      if (data.reviews.length > 0 && result.entry) {
+        await Promise.all(
+          data.reviews.map((review) =>
+            createReview.mutateAsync({
+              dayEntryId: result.entry.id,
+              category: review.category,
+              customCategoryId: review.customCategoryId,
+              content: review.content,
+            })
+          )
+        );
+      }
+
+      setSelectedDay(null);
+      toast.success("Day entry saved successfully!");
+    } catch (error) {
+      console.error("Error saving day entry:", error);
+      toast.error("Failed to save day entry. Please try again.");
+    }
+  };
+
+  if (isSessionLoading || (session && isLoadingYear)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="min-h-screen pb-20 px-4 md:px-6 lg:px-8 max-w-[1600px] mx-auto bg-[#0D0D0F]">
+        {/* Header Section */}
+        <header className="py-8 md:py-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              <span className="bg-[#22D3EE]/10 text-[#22D3EE] text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest border border-[#22D3EE]/20">
+                Personal Archivist
+              </span>
+              <span className="text-gray-500 text-sm font-medium">v1.0.0</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-100 tracking-tight wrap-break-words">
+              THE YEAR <span className="text-[#22D3EE]">{year}</span>
+            </h1>
+            <p className="text-gray-400 mt-2 font-medium max-w-xl text-sm md:text-base">
+              A visual autobiography of your emotional journey. Every square
+              holds a memory, every color tells a story.
+            </p>
+          </div>
+
+          {session && (
+            <div className="flex gap-3 md:gap-4 flex-wrap sm:flex-nowrap">
+              <div className="bg-[#16161A] border border-[#2A2B2F] rounded-xl p-3 md:p-4 flex flex-col items-center min-w-[90px] md:min-w-[100px] shadow-sm">
+                <span className="text-xl md:text-2xl font-black text-white">
+                  {totalEntries}
+                </span>
+                <span className="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                  Logged
+                </span>
+              </div>
+              <div className="bg-[#16161A] border border-[#2A2B2F] rounded-xl p-3 md:p-4 flex flex-col items-center min-w-[90px] md:min-w-[100px] shadow-sm">
+                <span className="text-xl md:text-2xl font-black text-[#22C55E]">
+                  {goodDaysCount}
+                </span>
+                <span className="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                  Great Days
+                </span>
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* Main Layout Grid */}
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+          {/* Year View */}
+          <div className="flex-1 space-y-10 md:space-y-12 lg:space-y-16 overflow-hidden">
+            {QUADRIMESTERS.map((quad, qIndex) => (
+              <section
+                key={quad.name}
+                className="animate-in slide-in-from-bottom-4 duration-500"
+                style={{ animationDelay: `${qIndex * 150}ms` }}
+              >
+                <div className="flex items-center gap-4 mb-5 md:mb-6">
+                  <h2 className="text-xs md:text-sm font-black text-[#22D3EE] uppercase tracking-[0.2em] md:tracking-[0.3em] whitespace-nowrap">
+                    {quad.name}
+                  </h2>
+                  <div className="h-px bg-linear-to-r from-[#22D3EE]/30 to-transparent w-full" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-6 md:gap-y-8 gap-x-3 md:gap-x-4 lg:gap-x-6 justify-items-center lg:justify-items-start">
+                  {quad.months.map((mIdx, idx) => (
+                    <div key={mIdx} className="w-full max-w-sm md:max-w-none">
+                      <MonthGrid
+                        year={year}
+                        monthIndex={mIdx}
+                        dayEntries={dayEntries}
+                        reviewsByEntry={reviewsByEntry}
+                        onTileClick={handleDayClick}
+                        showReviews={true}
+                        showWeekdays={idx === 0}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+
+          {/* Side Panel (Legend) */}
+          <aside className="lg:w-64 shrink-0 w-full">
+            <MoodLegend />
+          </aside>
+        </div>
+
+        {/* Modal Overlay */}
+        {selectedDay && session && (
+          <DayModal
+            day={selectedDay}
+            entry={dayData?.entry}
+            reviews={dayData?.reviews}
+            customCategories={customCategoriesData?.categories}
+            onClose={() => setSelectedDay(null)}
+            onSave={handleSaveDayEntry}
+          />
+        )}
+
+        {/* Footer Info */}
+        <footer className="mt-20 md:mt-32 py-8 border-t border-[#2A2B2F] text-center">
+          <p className="text-gray-600 text-[9px] md:text-[10px] uppercase font-bold tracking-[0.3em] md:tracking-[0.4em]">
+            Mood Tracking System &copy; {year} &bull; Designed for Reflection
+          </p>
+        </footer>
+      </div>
+
+      {/* Sign In Dialog */}
+      <SignInDialog open={signInOpen} onOpenChange={setSignInOpen} />
+    </>
   );
 }

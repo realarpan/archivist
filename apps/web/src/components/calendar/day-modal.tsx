@@ -13,6 +13,8 @@ import { Dialog, DialogContent } from "@repo/ui/components/ui/dialog";
 import { Button } from "@repo/ui/components/ui/button";
 import { Textarea } from "@repo/ui/components/ui/textarea";
 import { Label } from "@repo/ui/components/ui/label";
+import { toast } from "sonner";
+import { ArrowRight, ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 
 interface DayModalProps {
   day: DayInfo | null;
@@ -39,6 +41,7 @@ export const DayModal: React.FC<DayModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const [step, setStep] = useState<1 | 2>(1);
   const [selectedLegend, setSelectedLegend] = useState<Legend>(Legend.NEUTRAL);
   const [reviewContents, setReviewContents] = useState<Record<string, string>>(
     {}
@@ -46,6 +49,9 @@ export const DayModal: React.FC<DayModalProps> = ({
 
   useEffect(() => {
     if (!day) return;
+
+    // Reset to step 1 when day changes
+    setStep(1);
 
     // Set legend
     if (entry) {
@@ -79,6 +85,18 @@ export const DayModal: React.FC<DayModalProps> = ({
 
   const isFuture = isFutureDate(day.dateKey);
 
+  const handleNext = () => {
+    if (step === 1) {
+      setStep(2);
+    }
+  };
+
+  const handleBack = () => {
+    if (step === 2) {
+      setStep(1);
+    }
+  };
+
   const handleSave = () => {
     // Validate required custom categories
     const requiredCategories = customCategories.filter((c) => c.isRequired);
@@ -87,7 +105,7 @@ export const DayModal: React.FC<DayModalProps> = ({
     );
 
     if (missingRequired) {
-      alert("Please fill in all required review categories");
+      toast.error("Please fill in all required review categories");
       return;
     }
 
@@ -128,132 +146,212 @@ export const DayModal: React.FC<DayModalProps> = ({
     });
   };
 
+  const handleSkipReviews = () => {
+    onSave({
+      date: day.dateKey,
+      legend: selectedLegend,
+      reviews: [],
+    });
+  };
+
   return (
     <Dialog open={!!day} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#16161A] border-[#2A2B2F]"
+        className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#16161A] border-[#2A2B2F] mx-4"
         showCloseButton={true}
       >
-        <div className="space-y-6">
-          {/* Header */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-100 mb-1">
-              Log Day Entry
-            </h2>
-            <p className="text-gray-400 font-medium">
-              {new Date(day.dateKey).toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-            {isFuture && (
-              <p className="text-red-400 text-sm mt-1">
-                Cannot create entries for future dates
+        {/* Step 1: Legend Selection */}
+        {step === 1 && (
+          <div className="space-y-6 py-2">
+            {/* Header */}
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 bg-[#22D3EE]/10 text-[#22D3EE] text-xs font-bold px-3 py-1 rounded-full mb-3 border border-[#22D3EE]/20">
+                <span>STEP 1 OF 2</span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-gray-100 mb-2">
+                How was your day?
+              </h2>
+              <p className="text-gray-400 text-sm font-medium">
+                {new Date(day.dateKey).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
               </p>
-            )}
-          </div>
+              {isFuture && (
+                <p className="text-red-400 text-xs mt-2 font-medium">
+                  Cannot create entries for future dates
+                </p>
+              )}
+            </div>
 
-          {/* Legend Selector */}
-          <div>
-            <Label className="block text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-              How was your day? <span className="text-red-400">*</span>
-            </Label>
-            <div className="grid grid-cols-5 gap-2">
+            {/* Legend Selector */}
+            <div className="space-y-3">
               {legends.map((type) => {
                 const isSelected = selectedLegend === type;
+                const config = LEGEND_CONFIG[type];
                 return (
                   <button
                     key={type}
                     onClick={() => setSelectedLegend(type)}
                     disabled={isFuture}
                     className={`
-                      aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all
+                      w-full p-4 rounded-xl flex items-center gap-4 transition-all
                       ${
                         isSelected
-                          ? "scale-105 shadow-lg ring-2 ring-offset-2 ring-offset-[#16161A] ring-white/20"
-                          : "opacity-60 hover:opacity-100"
+                          ? "ring-2 ring-[#22D3EE] shadow-lg scale-[1.02]"
+                          : "hover:scale-[1.01] opacity-70 hover:opacity-100"
                       }
-                      ${isFuture ? "cursor-not-allowed" : ""}
+                      ${isFuture ? "cursor-not-allowed" : "cursor-pointer"}
+                      bg-[#0F0F12] border border-[#2A2B2F]
                     `}
-                    style={{ backgroundColor: LEGEND_CONFIG[type].color }}
-                    title={LEGEND_CONFIG[type].label}
                   >
-                    <div className="w-1.5 h-1.5 rounded-full bg-black/20" />
+                    <div
+                      className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: config.color }}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-black/30" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-bold text-gray-100">{config.label}</p>
+                      <p className="text-xs text-gray-500">
+                        {type === Legend.CORE_MEMORY &&
+                          "An unforgettable moment"}
+                        {type === Legend.GOOD_DAY && "Things went well"}
+                        {type === Legend.NEUTRAL && "Just another day"}
+                        {type === Legend.BAD_DAY && "Could have been better"}
+                        {type === Legend.NIGHTMARE && "A difficult day"}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-[#22D3EE] flex items-center justify-center shrink-0">
+                        <svg
+                          className="w-4 h-4 text-gray-900"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
                   </button>
                 );
               })}
             </div>
-            <p
-              className="mt-3 text-center text-sm font-bold"
-              style={{ color: LEGEND_CONFIG[selectedLegend].color }}
+
+            {/* Next Button */}
+            <Button
+              onClick={handleNext}
+              disabled={isFuture}
+              className="w-full bg-[#22D3EE] hover:bg-[#06B6D4] text-gray-900 font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98]"
             >
-              {LEGEND_CONFIG[selectedLegend].label}
-            </p>
+              Continue to Reviews
+              <ArrowRight className="ml-2 w-5 h-5" weight="bold" />
+            </Button>
           </div>
+        )}
 
-          {/* Review Sections */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-              Reviews (Optional)
-            </h3>
-
-            {/* Default Categories */}
-            {DEFAULT_CATEGORIES.map((cat) => (
-              <div key={cat.value}>
-                <Label className="block text-sm font-medium text-gray-300 mb-2">
-                  {cat.label}
-                </Label>
-                <Textarea
-                  value={reviewContents[cat.value.toLowerCase()] || ""}
-                  onChange={(e) =>
-                    setReviewContents({
-                      ...reviewContents,
-                      [cat.value.toLowerCase()]: e.target.value,
-                    })
-                  }
-                  disabled={isFuture}
-                  placeholder={`Write about your ${cat.label.toLowerCase()} day...`}
-                  className="w-full h-24 bg-[#0F0F12] border-[#2A2B2F] text-gray-200 focus:ring-[#22D3EE]/30 focus:border-[#22D3EE]/50 resize-none"
-                />
+        {/* Step 2: Reviews */}
+        {step === 2 && (
+          <div className="space-y-6 py-2">
+            {/* Header */}
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 bg-[#22D3EE]/10 text-[#22D3EE] text-xs font-bold px-3 py-1 rounded-full mb-3 border border-[#22D3EE]/20">
+                <span>STEP 2 OF 2</span>
               </div>
-            ))}
+              <h2 className="text-2xl md:text-3xl font-black text-gray-100 mb-2">
+                Add Your Reviews
+              </h2>
+              <p className="text-gray-400 text-sm">
+                Share more details about your day (optional)
+              </p>
+            </div>
 
-            {/* Custom Categories */}
-            {customCategories.map((cat) => (
-              <div key={cat.id}>
-                <Label className="block text-sm font-medium text-gray-300 mb-2">
-                  {cat.name}
-                  {cat.isRequired && (
-                    <span className="text-red-400 ml-1">*</span>
-                  )}
-                </Label>
-                <Textarea
-                  value={reviewContents[`custom-${cat.id}`] || ""}
-                  onChange={(e) =>
-                    setReviewContents({
-                      ...reviewContents,
-                      [`custom-${cat.id}`]: e.target.value,
-                    })
-                  }
+            {/* Review Sections */}
+            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+              {/* Default Categories */}
+              {DEFAULT_CATEGORIES.map((cat) => (
+                <div key={cat.value}>
+                  <Label className="block text-sm font-medium text-gray-300 mb-2">
+                    {cat.label}
+                  </Label>
+                  <Textarea
+                    value={reviewContents[cat.value.toLowerCase()] || ""}
+                    onChange={(e) =>
+                      setReviewContents({
+                        ...reviewContents,
+                        [cat.value.toLowerCase()]: e.target.value,
+                      })
+                    }
+                    disabled={isFuture}
+                    placeholder={`Write about your ${cat.label.toLowerCase()}...`}
+                    className="w-full h-20 bg-[#0F0F12] border-[#2A2B2F] text-gray-200 focus:ring-[#22D3EE]/30 focus:border-[#22D3EE]/50 resize-none text-sm"
+                  />
+                </div>
+              ))}
+
+              {/* Custom Categories */}
+              {customCategories.map((cat) => (
+                <div key={cat.id}>
+                  <Label className="block text-sm font-medium text-gray-300 mb-2">
+                    {cat.name}
+                    {cat.isRequired && (
+                      <span className="text-red-400 ml-1">*</span>
+                    )}
+                  </Label>
+                  <Textarea
+                    value={reviewContents[`custom-${cat.id}`] || ""}
+                    onChange={(e) =>
+                      setReviewContents({
+                        ...reviewContents,
+                        [`custom-${cat.id}`]: e.target.value,
+                      })
+                    }
+                    disabled={isFuture}
+                    placeholder={`Write about ${cat.name.toLowerCase()}...`}
+                    className="w-full h-20 bg-[#0F0F12] border-[#2A2B2F] text-gray-200 focus:ring-[#22D3EE]/30 focus:border-[#22D3EE]/50 resize-none text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <Button
+                onClick={handleSave}
+                disabled={isFuture}
+                className="w-full bg-[#22D3EE] hover:bg-[#06B6D4] text-gray-900 font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98]"
+              >
+                Save Entry
+              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleBack}
+                  variant="outline"
+                  className="flex-1 border-[#2A2B2F] hover:bg-[#2A2B2F] text-gray-300 py-3"
+                >
+                  <ArrowLeft className="mr-2 w-4 h-4" weight="bold" />
+                  Back
+                </Button>
+                <Button
+                  onClick={handleSkipReviews}
+                  variant="outline"
                   disabled={isFuture}
-                  placeholder={`Write about ${cat.name.toLowerCase()}...`}
-                  className="w-full h-24 bg-[#0F0F12] border-[#2A2B2F] text-gray-200 focus:ring-[#22D3EE]/30 focus:border-[#22D3EE]/50 resize-none"
-                />
+                  className="flex-1 border-[#2A2B2F] hover:bg-[#2A2B2F] text-gray-300 py-3"
+                >
+                  Skip Reviews
+                </Button>
               </div>
-            ))}
+            </div>
           </div>
-
-          {/* Save Button */}
-          <Button
-            onClick={handleSave}
-            disabled={isFuture}
-            className="w-full bg-[#22D3EE] hover:bg-[#06B6D4] text-gray-900 font-bold py-6 rounded-xl shadow-lg transition-all active:scale-[0.98]"
-          >
-            Save Entry
-          </Button>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );

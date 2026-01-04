@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Gear, User } from "@phosphor-icons/react/dist/ssr";
+import { Gear, User } from "@phosphor-icons/react/dist/ssr";
 
 import {
   DropdownMenu,
@@ -18,11 +18,13 @@ import { useProfileSettings } from "@/lib/api/calendar";
 
 import { Button } from "@repo/ui/components/ui/button";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
+import SignInDialog from "@/components/auth/sign-in-dialog";
 
 export default function UserMenu() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const { data: profileData } = useProfileSettings();
+  const [signInOpen, setSignInOpen] = useState(false);
 
   if (isPending) {
     return <Skeleton className="h-9 w-24" />;
@@ -30,9 +32,12 @@ export default function UserMenu() {
 
   if (!session) {
     return (
-      <Link href="/login">
-        <Button variant="outline">Sign In</Button>
-      </Link>
+      <>
+        <Button variant="outline" onClick={() => setSignInOpen(true)}>
+          Sign In
+        </Button>
+        <SignInDialog open={signInOpen} onOpenChange={setSignInOpen} />
+      </>
     );
   }
 
@@ -41,7 +46,7 @@ export default function UserMenu() {
       <DropdownMenuTrigger render={<Button variant="outline" />}>
         {session.user.name}
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card w-56">
+      <DropdownMenuContent className="bg-card w-fit">
         <DropdownMenuGroup>
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -49,10 +54,6 @@ export default function UserMenu() {
             {session.user.email}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push("/calendar")}>
-            <Calendar className="mr-2 h-4 w-4" />
-            <span>Calendar</span>
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/settings")}>
             <Gear className="mr-2 h-4 w-4" />
             <span>Settings</span>

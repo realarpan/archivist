@@ -13,6 +13,7 @@ const API_URL = env.NEXT_PUBLIC_SERVER_URL;
 // API Response Types
 type YearEntriesResponse = {
   entries: DayEntry[];
+  reviews: Review[];
 };
 
 type DayEntryResponse = {

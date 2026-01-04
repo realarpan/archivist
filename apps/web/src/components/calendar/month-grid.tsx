@@ -3,56 +3,73 @@
 import React from "react";
 import { MONTHS, WEEKDAYS } from "@/lib/constants";
 import { getMonthGrid } from "@/lib/date-utils";
-import type { DayInfo, DayEntryMap } from "@/lib/types";
+import type { DayInfo, DayEntryMap, Review } from "@/lib/types";
 import { DayTile } from "./day-tile";
 
 interface MonthGridProps {
   year: number;
   monthIndex: number;
   dayEntries: DayEntryMap;
+  reviewsByEntry?: Record<string, Review[]>;
   onTileClick: (day: DayInfo) => void;
+  showReviews?: boolean;
+  showWeekdays?: boolean;
 }
 
 export const MonthGrid: React.FC<MonthGridProps> = ({
   year,
   monthIndex,
   dayEntries,
+  reviewsByEntry = {},
   onTileClick,
+  showReviews = true,
+  showWeekdays = true,
 }) => {
   const grid = getMonthGrid(year, monthIndex);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 w-full max-w-full">
       <div className="flex items-center justify-between mb-1">
-        <h4 className="text-[11px] font-bold text-gray-400 tracking-[0.2em] uppercase">
+        <h4 className="text-[10px] md:text-[11px] font-bold text-gray-400 tracking-[0.15em] md:tracking-[0.2em] uppercase">
           {MONTHS[monthIndex]} {year}
         </h4>
       </div>
 
-      <div className="flex gap-2">
-        {/* Weekday labels */}
-        <div className="flex flex-col gap-[10px] md:gap-[12px] pt-1">
-          {WEEKDAYS.map((day) => (
-            <div key={day} className="h-8 md:h-10 flex items-center">
-              <span className="text-[9px] font-bold text-gray-600 tracking-tighter">
-                {day}
-              </span>
-            </div>
-          ))}
-        </div>
+      <div className="flex gap-2 w-full">
+        {/* Weekday labels - only show for first month of quarter */}
+        {showWeekdays && (
+          <div className="flex flex-col gap-[8px] md:gap-[10px] lg:gap-[12px] pt-1 shrink-0">
+            {WEEKDAYS.map((day) => (
+              <div key={day} className="h-7 md:h-8 lg:h-10 flex items-center">
+                <span className="text-[8px] md:text-[9px] font-bold text-gray-600 tracking-tighter">
+                  {day}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* The Grid */}
-        <div className="flex flex-col gap-[8px] md:gap-[10px]">
+        <div className="flex flex-col gap-[6px] md:gap-[8px] lg:gap-[10px] flex-1 min-w-0">
           {grid.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex gap-[8px] md:gap-[10px]">
-              {row.map((day, colIndex) => (
-                <DayTile
-                  key={`${rowIndex}-${colIndex}`}
-                  day={day}
-                  entry={day ? dayEntries[day.dateKey] : undefined}
-                  onClick={onTileClick}
-                />
-              ))}
+            <div
+              key={rowIndex}
+              className="flex gap-[6px] md:gap-[8px] lg:gap-[10px]"
+            >
+              {row.map((day, colIndex) => {
+                const entry = day ? dayEntries[day.dateKey] : undefined;
+                const reviews = entry ? reviewsByEntry[entry.id] || [] : [];
+                return (
+                  <DayTile
+                    key={`${rowIndex}-${colIndex}`}
+                    day={day}
+                    entry={entry}
+                    reviews={reviews}
+                    onClick={onTileClick}
+                    showReviews={showReviews}
+                  />
+                );
+              })}
             </div>
           ))}
         </div>

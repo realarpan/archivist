@@ -1,4 +1,4 @@
-import { db, eq, and, gte, lte } from "@quarter/db";
+import { db, eq, and, gte, lte, inArray } from "@quarter/db";
 import { dayEntry, review } from "@quarter/db/schema/calendar";
 import type { Request, Response } from "express";
 import type {
@@ -33,8 +33,20 @@ export const getYearEntries = async (
       )
       .orderBy(dayEntry.date);
 
+    // Fetch all reviews for these entries
+    const entryIds = entries.map((e) => e.id);
+    let reviews: any[] = [];
+    if (entryIds.length > 0) {
+      reviews = await db
+        .select()
+        .from(review)
+        .where(inArray(review.dayEntryId, entryIds))
+        .orderBy(review.createdAt);
+    }
+
     res.status(200).json({
       entries,
+      reviews,
     });
   } catch (error) {
     console.error("Error fetching year entries:", error);
