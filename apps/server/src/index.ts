@@ -35,6 +35,6 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-app.listen(3001, () => {
-  console.log("Server is running on http://localhost:3001");
+app.listen(3009, () => {
+  console.log("Server is running on http://localhost:3009");
 });

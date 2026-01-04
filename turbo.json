@@ -17,6 +17,11 @@
       "cache": false,
       "persistent": true
     },
+    "start": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["build"]
+    },
     "db:push": {
       "cache": false,
       "persistent": true
