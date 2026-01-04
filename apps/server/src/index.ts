@@ -34,7 +34,29 @@ app.get("/api/health", (_req, res) => {
     message: "OK! API is running",
   });
 });
-
 app.listen(3009, () => {
   console.log("Server is running on http://localhost:3009");
+  console.log("Environment variables:", {
+    DATABASE_URL: env.DATABASE_URL
+      ? env.DATABASE_URL.substring(0, 3) + "..."
+      : "❌ undefined",
+    BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET
+      ? env.BETTER_AUTH_SECRET.substring(0, 3) + "..."
+      : "❌ undefined",
+    BETTER_AUTH_URL: env.BETTER_AUTH_URL
+      ? env.BETTER_AUTH_URL.substring(0, 3) + "..."
+      : "❌ undefined",
+    CORS_ORIGIN: env.CORS_ORIGIN
+      ? env.CORS_ORIGIN.substring(0, 3) + "..."
+      : "❌ undefined",
+    NODE_ENV: env.NODE_ENV
+      ? env.NODE_ENV.substring(0, 3) + "..."
+      : "❌ undefined",
+    GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID
+      ? env.GOOGLE_CLIENT_ID.substring(0, 3) + "..."
+      : "❌ undefined",
+    GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET
+      ? env.GOOGLE_CLIENT_SECRET.substring(0, 3) + "..."
+      : "❌ undefined",
+  });
 });
