@@ -1,12 +1,14 @@
 import dotenv from "dotenv";
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
-if (
-  (!process.env.NODE_ENV || process.env.NODE_ENV === "development") &&
-  !process.env.DATABASE_URL
-) {
-  dotenv.config();
+if (!process.env.DATABASE_URL && !process.env.BETTER_AUTH_SECRET) {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const rootEnvPath = resolve(__dirname, "../../../.env");
+  dotenv.config({ path: rootEnvPath });
 }
 
 export const env = createEnv({
