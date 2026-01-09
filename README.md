@@ -46,16 +46,16 @@ bun install
 2. Update `apps/server/.env` with your configuration:
    - `DATABASE_URL`: Connection string for your PostgreSQL database.
    - `BETTER_AUTH_SECRET`: A secure random string for authentication.
-   - `BETTER_AUTH_URL`: `http://localhost:3000` (Frontend URL).
-   - `CORS_ORIGIN`: `http://localhost:3000` (Frontend URL).
+   - `BETTER_AUTH_URL`: `http://localhost:3003` (Frontend URL).
+   - `CORS_ORIGIN`: `http://localhost:3003` (Frontend URL).
    - `GOOGLE_CLIENT_ID`: Google OAuth client ID.
    - `GOOGLE_CLIENT_SECRET`: Google OAuth client secret.
 
    > **Note:** You can get the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` from the [Google Cloud Console](https://console.cloud.google.com/).
    >
    > **Google OAuth Configuration:**
-   > - **Authorized JavaScript origins:** `http://localhost:3000`
-   > - **Authorized redirect URIs:** `http://localhost:8080/api/auth/callback/google`
+   > - **Authorized JavaScript origins:** `http://localhost:3003`
+   > - **Authorized redirect URIs:** `http://localhost:3009/api/auth/callback/google`
    >
    > For more details, see the [Better Auth Installation Guide](https://www.better-auth.com/docs/installation).
 
@@ -66,8 +66,8 @@ bun install
    cp apps/web/.env.example apps/web/.env
    ```
 2. Update `apps/web/.env`:
-   - `NEXT_PUBLIC_SERVER_URL`: `http://localhost:8080` (Backend API URL).
-   - `NEXT_PUBLIC_FRONTEND_URL`: `http://localhost:3000`.
+   - `NEXT_PUBLIC_SERVER_URL`: `http://localhost:3009` (Backend API URL).
+   - `NEXT_PUBLIC_FRONTEND_URL`: `http://localhost:3003`.
 
 ### 3. Database Setup
 
@@ -90,8 +90,8 @@ Start both the frontend and backend in development mode:
 bun run dev
 ```
 
-- **Frontend**: [http://localhost:3000](http://localhost:3000)
-- **Backend**: [http://localhost:8080](http://localhost:8080)
+- **Frontend**: [http://localhost:3003](http://localhost:3003)
+- **Backend**: [http://localhost:3009](http://localhost:3009)
 
 ## Project Structure
 
