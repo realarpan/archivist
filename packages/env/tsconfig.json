@@ -1,0 +1,3 @@
+{
+  "extends": "@archivist/config/tsconfig.base.json"
+}
