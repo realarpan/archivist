@@ -190,21 +190,21 @@ export const DayModal: React.FC<DayModalProps> = ({
   return (
     <Dialog open={!!day} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-lg max-h-[90vh] overflow-y-auto bg-[#16161A] border-[#2A2B2F] mx-4"
+        className="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto bg-[#16161A] border-[#2A2B2F] mx-2 sm:mx-4 p-4 sm:p-6"
         showCloseButton={true}
       >
         {/* Step 1: Legend Selection */}
         {step === 1 && (
-          <div className="space-y-6 py-2">
+          <div className="space-y-4 sm:space-y-6 py-2">
             {/* Header */}
             <div className="text-center">
-              <div className="inline-flex items-center gap-2 bg-[#22D3EE]/10 text-[#22D3EE] text-xs font-bold px-3 py-1 rounded-full mb-3 border border-[#22D3EE]/20">
+              <div className="inline-flex items-center gap-2 bg-[#22D3EE]/10 text-[#22D3EE] text-xs font-bold px-3 py-1 rounded-full mb-2 sm:mb-3 border border-[#22D3EE]/20">
                 <span>STEP 1 OF 2</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-gray-100 mb-2">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-100 mb-2">
                 How was your day?
               </h2>
-              <p className="text-gray-400 text-sm font-medium">
+              <p className="text-gray-400 text-xs sm:text-sm font-medium">
                 {new Date(day.dateKey).toLocaleDateString("en-US", {
                   weekday: "long",
                   month: "short",
@@ -220,7 +220,7 @@ export const DayModal: React.FC<DayModalProps> = ({
             </div>
 
             {/* Legend Selector */}
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {legends.map((type) => {
                 const isSelected = selectedLegend === type;
                 const config = LEGEND_CONFIG[type];
@@ -240,13 +240,13 @@ export const DayModal: React.FC<DayModalProps> = ({
                     `}
                   >
                     <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center shrink-0"
                       style={{ backgroundColor: config.color }}
                     >
                       <div className="w-2 h-2 rounded-full bg-black/30" />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="font-bold text-gray-100">{config.label}</p>
+                      <p className="font-bold text-gray-100 text-sm sm:text-base">{config.label}</p>
                       <p className="text-xs text-gray-500">
                         {type === Legend.CORE_MEMORY &&
                           "An unforgettable moment"}
@@ -292,26 +292,26 @@ export const DayModal: React.FC<DayModalProps> = ({
 
         {/* Step 2: Reviews */}
         {step === 2 && (
-          <div className="space-y-6 py-2">
+          <div className="space-y-4 sm:space-y-6 py-2">
             {/* Header */}
             <div className="text-center">
-              <div className="inline-flex items-center gap-2 bg-[#22D3EE]/10 text-[#22D3EE] text-xs font-bold px-3 py-1 rounded-full mb-3 border border-[#22D3EE]/20">
+              <div className="inline-flex items-center gap-2 bg-[#22D3EE]/10 text-[#22D3EE] text-xs font-bold px-3 py-1 rounded-full mb-2 sm:mb-3 border border-[#22D3EE]/20">
                 <span>STEP 2 OF 2</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-gray-100 mb-2">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-100 mb-2">
                 Add Your Reviews
               </h2>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-400 text-xs sm:text-sm">
                 Share more details about your day (optional)
               </p>
             </div>
 
             {/* Review Sections */}
-            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+            <div className="space-y-3 sm:space-y-4 max-h-[50vh] overflow-y-auto pr-2">
               {/* Default Categories */}
               {DEFAULT_CATEGORIES.map((cat) => (
                 <div key={cat.value}>
-                  <Label className="block text-sm font-medium text-gray-300 mb-2">
+                  <Label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
                     {cat.label}
                   </Label>
                   <Textarea
@@ -324,7 +324,7 @@ export const DayModal: React.FC<DayModalProps> = ({
                     }
                     disabled={isFuture}
                     placeholder={`Write about your ${cat.label.toLowerCase()}...`}
-                    className="w-full h-20 bg-[#0F0F12] border-[#2A2B2F] text-gray-200 focus:ring-[#22D3EE]/30 focus:border-[#22D3EE]/50 resize-none text-sm"
+                    className="w-full h-20 sm:h-24 bg-[#0F0F12] border-[#2A2B2F] text-gray-200 focus:ring-[#22D3EE]/30 focus:border-[#22D3EE]/50 resize-none text-xs sm:text-sm p-3"
                   />
                 </div>
               ))}
@@ -332,7 +332,7 @@ export const DayModal: React.FC<DayModalProps> = ({
               {/* Custom Categories */}
               {customCategories.map((cat) => (
                 <div key={cat.id}>
-                  <Label className="block text-sm font-medium text-gray-300 mb-2">
+                  <Label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
                     {cat.name}
                     {cat.isRequired && (
                       <span className="text-red-400 ml-1">*</span>
@@ -348,14 +348,14 @@ export const DayModal: React.FC<DayModalProps> = ({
                     }
                     disabled={isFuture}
                     placeholder={`Write about ${cat.name.toLowerCase()}...`}
-                    className="w-full h-20 bg-[#0F0F12] border-[#2A2B2F] text-gray-200 focus:ring-[#22D3EE]/30 focus:border-[#22D3EE]/50 resize-none text-sm"
+                    className="w-full h-20 sm:h-24 bg-[#0F0F12] border-[#2A2B2F] text-gray-200 focus:ring-[#22D3EE]/30 focus:border-[#22D3EE]/50 resize-none text-xs sm:text-sm p-3"
                   />
                 </div>
               ))}
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <Button
                 onClick={handleSave}
                 disabled={isFuture || isSaving}
@@ -369,11 +369,11 @@ export const DayModal: React.FC<DayModalProps> = ({
                     ? "Update Entry"
                     : "Save Entry"}
               </Button>
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <Button
                   onClick={handleBack}
                   variant="outline"
-                  className="flex-1 border-[#2A2B2F] hover:bg-[#2A2B2F] text-gray-300 py-3"
+                  className="flex-1 border-[#2A2B2F] hover:bg-[#2A2B2F] text-gray-300 py-2 sm:py-3 text-sm sm:text-base"
                 >
                   <ArrowLeft className="mr-2 w-4 h-4" weight="bold" />
                   Back
@@ -382,7 +382,7 @@ export const DayModal: React.FC<DayModalProps> = ({
                   onClick={handleSkipReviews}
                   variant="outline"
                   disabled={isFuture}
-                  className="flex-1 border-[#2A2B2F] hover:bg-[#2A2B2F] text-gray-300 py-3"
+                  className="flex-1 border-[#2A2B2F] hover:bg-[#2A2B2F] text-gray-300 py-2 sm:py-3 text-sm sm:text-base"
                 >
                   Skip Reviews
                 </Button>
