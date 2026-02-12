@@ -10,6 +10,7 @@ import profileRoutes from "./api/routes/profile.routes";
 
 const app = express();
 
+// Middleware
 app.use(
   cors({
     origin: env.CORS_ORIGIN,
@@ -20,7 +21,6 @@ app.use(
 );
 
 app.all("/api/auth{/*path}", toNodeHandler(auth));
-
 app.use(express.json());
 
 // Routes
@@ -29,36 +29,23 @@ app.use("/api/reviews", reviewsRoutes);
 app.use("/api/categories", categoriesRoutes);
 app.use("/api/profile", profileRoutes);
 
+// Health check
 app.get("/api/health", (_req, res) => {
-  res.status(200).json({
-    message: "OK! API is running",
-  });
+  res.status(200).json({ message: "OK! API is running" });
 });
+
+// Railway uses dynamic port
 const port = Number(process.env.PORT) || 3009;
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
   console.log("Environment variables:", {
-    DATABASE_URL: env.DATABASE_URL
-      ? env.DATABASE_URL.substring(0, 3) + "..."
-      : "❌ undefined",
-    BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET
-      ? env.BETTER_AUTH_SECRET.substring(0, 3) + "..."
-      : "❌ undefined",
-    BETTER_AUTH_URL: env.BETTER_AUTH_URL
-      ? env.BETTER_AUTH_URL.substring(0, 3) + "..."
-      : "❌ undefined",
-    CORS_ORIGIN: env.CORS_ORIGIN
-      ? env.CORS_ORIGIN.substring(0, 3) + "..."
-      : "❌ undefined",
-    NODE_ENV: env.NODE_ENV
-      ? env.NODE_ENV.substring(0, 3) + "..."
-      : "❌ undefined",
-    GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID
-      ? env.GOOGLE_CLIENT_ID.substring(0, 3) + "..."
-      : "❌ undefined",
-    GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET
-      ? env.GOOGLE_CLIENT_SECRET.substring(0, 3) + "..."
-      : "❌ undefined",
+    DATABASE_URL: env.DATABASE_URL ? env.DATABASE_URL.substring(0, 3) + "..." : "❌ undefined",
+    BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET ? env.BETTER_AUTH_SECRET.substring(0, 3) + "..." : "❌ undefined",
+    BETTER_AUTH_URL: env.BETTER_AUTH_URL ? env.BETTER_AUTH_URL.substring(0, 3) + "..." : "❌ undefined",
+    CORS_ORIGIN: env.CORS_ORIGIN ? env.CORS_ORIGIN.substring(0, 3) + "..." : "❌ undefined",
+    NODE_ENV: env.NODE_ENV ? env.NODE_ENV.substring(0, 3) + "..." : "❌ undefined",
+    GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID ? env.GOOGLE_CLIENT_ID.substring(0, 3) + "..." : "❌ undefined",
+    GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET ? env.GOOGLE_CLIENT_SECRET.substring(0, 3) + "..." : "❌ undefined",
   });
 });
