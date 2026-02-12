@@ -34,8 +34,10 @@ app.get("/api/health", (_req, res) => {
     message: "OK! API is running",
   });
 });
-app.listen(3009, () => {
-  console.log("Server is running on http://localhost:3009");
+const port = Number(process.env.PORT) || 3009;
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
   console.log("Environment variables:", {
     DATABASE_URL: env.DATABASE_URL
       ? env.DATABASE_URL.substring(0, 3) + "..."
